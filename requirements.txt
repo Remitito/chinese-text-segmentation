@@ -1,0 +1,6 @@
+jieba==0.42.1
+opencc-python-reimplemented
+pypinyin
+openai
+translators==5.9.3
+python-dotenv
