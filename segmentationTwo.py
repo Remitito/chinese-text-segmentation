@@ -1,3 +1,4 @@
+import deepl
 import json
 import jieba
 import opencc
@@ -6,16 +7,32 @@ from openai import OpenAI
 import string
 import translators as ts
 import os
-from wordList import manual_chars
 from dotenv import load_dotenv
 
 load_dotenv()
 client = OpenAI() 
+my_secret_key = os.getenv("DEEP_L_API_KEY")
+translator = deepl.Translator(my_secret_key)
+
 
 chinese_punctuation = '，。！？：；“”‘’（）《》【】、'
 all_punctuation = string.punctuation + chinese_punctuation
 converter = opencc.OpenCC('s2t')
-
+manual_chars = {
+    '是': 'is',
+    '的': 'of',
+    '在': 'at',
+    '有': 'have',
+    '和': 'and',
+    '不': 'not',
+    '这': 'this',
+    '那': 'that',
+    '做': 'make/do',
+    '来': 'come',
+    '曰': 'said',
+    '地': '(used to connect and adj/adv with a verb)',
+    '用': 'use/need'
+}
 
 def translate(chinese_text):
     response = client.chat.completions.create(
@@ -67,7 +84,9 @@ def process_chapters(data):
                     else:
                         try:
                             # segment_info['english'] = ts.translate_text(query_text=segment, from_language='zh', to_language='en')
-                            segment_info['english'] = ts.translate_text(query_text=segment, translator='yandex', from_language='zh', to_language='en')
+                            # segment_info['english'] = ts.translate_text(query_text=segment, translator='yandex', from_language='zh', to_language='en')
+                            asEnglish = translator.translate_text(segment, source_lang="ZH", target_lang="EN-US")
+                            segment_info['english'] = asEnglish.text
 
                         except:
                             print(f"Translation failed for segment: {segment}")
@@ -79,7 +98,7 @@ def process_chapters(data):
         save_to_file(data)
     return data
 
-text_name = "theSelfishGiant.json"
+text_name = "storyOfAnHour.json"
 
 def save_to_file(data, file_name=text_name):
     with open(file_name, 'w', encoding='utf-8') as f:
